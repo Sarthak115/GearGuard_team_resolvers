@@ -1,0 +1,41 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+const API = "http://localhost:5000/api";
+const stages = ["New", "In Progress", "Repaired", "Scrap"];
+
+function Kanban() {
+  const [requests, setRequests] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${API}/request`).then(res => setRequests(res.data));
+  }, []);
+
+  const moveStatus = async (id, status) => {
+    await axios.patch(`${API}/request/${id}`, { status });
+    const res = await axios.get(`${API}/request`);
+    setRequests(res.data);
+  };
+
+  return (
+    <div style={{ display: "flex", gap: 20, padding: 20 }}>
+      {stages.map(stage => (
+        <div key={stage} style={{ width: 220, border: "1px solid gray", padding: 10 }}>
+          <h4>{stage}</h4>
+          {requests.filter(r => r.status === stage).map(r => (
+            <div key={r._id} style={{ border: "1px solid #aaa", marginBottom: 10, padding: 5 }}>
+              <p>{r.equipmentName}</p>
+              {stages.map(s => s !== stage && (
+                <button key={s} onClick={() => moveStatus(r._id, s)}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default Kanban;
